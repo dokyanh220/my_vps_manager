@@ -1,25 +1,29 @@
+using serverMVM.Api.Hubs;
 using serverMVM.Application.Interfaces;
 using serverMVM.Infrastructure.Parsers;
 using serverMVM.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Controllers and OpenAPI
+// Add Controllers, OpenAPI, and SignalR
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
 
 // Register Clean Architecture Services in DI Container
 builder.Services.AddScoped<ILinuxSystemInfoParser, LinuxSystemInfoParser>();
 builder.Services.AddScoped<ISshService, SshService>();
+builder.Services.AddSingleton<ISshTerminalManager, SshTerminalManager>();
 
-// Configure CORS for Frontend integration
+// Configure CORS for Frontend integration & WebSockets/SignalR
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -36,5 +40,6 @@ app.UseCors("AllowAll");
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TerminalHub>("/hubs/terminal");
 
 app.Run();
