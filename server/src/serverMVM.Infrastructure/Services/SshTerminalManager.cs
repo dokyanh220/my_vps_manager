@@ -84,7 +84,7 @@ public class SshTerminalManager : ISshTerminalManager
                 return false;
             }
 
-            var shellStream = client.CreateShellStream("xterm", 80, 24, 800, 600, 1024);
+            var shellStream = client.CreateShellStream("xterm", 80, 24, 800, 600, 4096);
             var cts = new CancellationTokenSource();
 
             var session = new TerminalSession
@@ -114,14 +114,11 @@ public class SshTerminalManager : ISshTerminalManager
         {
             while (!cancellationToken.IsCancellationRequested && stream.CanRead)
             {
-                if (stream.DataAvailable)
+                var bytesRead = await Task.Run(() => stream.Read(buffer, 0, buffer.Length), cancellationToken);
+                if (bytesRead > 0)
                 {
-                    var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    if (bytesRead > 0)
-                    {
-                        var text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                        await onDataReceived(text);
-                    }
+                    var text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    await onDataReceived(text);
                 }
                 else
                 {
@@ -143,9 +140,11 @@ public class SshTerminalManager : ISshTerminalManager
     {
         if (_sessions.TryGetValue(connectionId, out var session))
         {
-            var bytes = Encoding.UTF8.GetBytes(data);
-            await session.Stream.WriteAsync(bytes, 0, bytes.Length);
-            await session.Stream.FlushAsync();
+            await Task.Run(() =>
+            {
+                session.Stream.Write(data);
+                session.Stream.Flush();
+            });
         }
     }
 
