@@ -14,6 +14,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ILinuxSystemInfoParser, LinuxSystemInfoParser>();
 builder.Services.AddScoped<ISshService, SshService>();
 builder.Services.AddSingleton<ISshTerminalManager, SshTerminalManager>();
+builder.Services.AddScoped<IDockerService, DockerService>();
+builder.Services.AddScoped<IDockerComposeDiscoveryService, DockerComposeDiscoveryService>();
 
 // Configure CORS for Frontend integration & WebSockets/SignalR
 builder.Services.AddCors(options =>

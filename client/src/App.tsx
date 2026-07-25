@@ -7,6 +7,7 @@ import { MetricsTab } from './components/dashboard/MetricsTab';
 import { TerminalTab } from './components/dashboard/TerminalTab';
 import { ServicesTab } from './components/dashboard/ServicesTab';
 import { LogsTab } from './components/dashboard/LogsTab';
+import { DockerTab } from './components/dashboard/DockerTab';
 import { EmptyServerState } from './components/dashboard/EmptyServerState';
 import { SshAuthType, type VpsProfile, type VpsSystemInfoResponseDto, type MetricHistoryPoint } from './types/vps';
 import { getVpsSystemInfo, testSshConnection } from './services/vpsApi';
@@ -298,6 +299,10 @@ export function App() {
 
                 {activeTab === 'terminal' && activeProfile && (
                   <TerminalTab activeProfile={activeProfile} />
+                )}
+
+                {activeTab === 'docker' && activeProfile && (
+                  <DockerTab activeProfile={activeProfile} />
                 )}
 
                 {activeTab === 'services' && <ServicesTab />}

@@ -6,6 +6,7 @@ import {
   Terminal,
   Server,
   FileText,
+  Boxes,
   ChevronRight,
   ShieldCheck,
   Plus,
@@ -16,7 +17,7 @@ import type { VpsProfile } from '../../types/vps';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/badge';
 
-export type ActiveTab = 'overview' | 'ssh-config' | 'metrics' | 'terminal' | 'services' | 'logs';
+export type ActiveTab = 'overview' | 'docker' | 'ssh-config' | 'metrics' | 'terminal' | 'services' | 'logs';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -50,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems: MenuItem[] = [
     { id: 'overview', label: 'Tổng quan Hệ thống', icon: LayoutDashboard, badge: 'Main' },
+    { id: 'docker', label: 'Quản lý Docker', icon: Boxes, badge: 'Discovery' },
     { id: 'ssh-config', label: 'Cấu hình SSH & Key', icon: KeyRound },
     { id: 'metrics', label: 'Đo đạc Tài nguyên', icon: Activity, badge: 'Live' },
     { id: 'terminal', label: 'SSH Terminal Console', icon: Terminal },
