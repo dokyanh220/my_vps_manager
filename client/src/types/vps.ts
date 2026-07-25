@@ -42,11 +42,21 @@ export interface DiskInfoDto {
   usagePercentage: number;
 }
 
+export interface NetworkInterfaceDto {
+  interfaceName: string;
+  ipAddress: string;
+  rxBytesTotal: number;
+  txBytesTotal: number;
+  formattedRxTotal: string;
+  formattedTxTotal: string;
+}
+
 export interface VpsSystemInfoResponseDto {
   os: OsInfoDto;
   cpu: CpuInfoDto;
   memory: MemoryInfoDto;
   disk: DiskInfoDto;
+  networks?: NetworkInterfaceDto[];
 }
 
 export interface VpsProfile extends SshConnectionRequestDto {

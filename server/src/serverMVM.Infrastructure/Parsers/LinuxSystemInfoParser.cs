@@ -63,9 +63,15 @@ public class LinuxSystemInfoParser : ILinuxSystemInfoParser
         }
 
         // 4. Disk (df -B1 /)
-        var diskSection = rawCommandOutput.Contains("===DISK===")
-            ? rawCommandOutput.Substring(rawCommandOutput.IndexOf("===DISK===") + 10).Trim()
-            : string.Empty;
+        var diskSection = GetSection("DISK", "NETWORK");
+        if (string.IsNullOrEmpty(diskSection) && rawCommandOutput.Contains("===DISK==="))
+        {
+            var diskIdx = rawCommandOutput.IndexOf("===DISK===") + 10;
+            var netIdx = rawCommandOutput.IndexOf("===NETWORK===");
+            diskSection = netIdx > diskIdx 
+                ? rawCommandOutput.Substring(diskIdx, netIdx - diskIdx).Trim() 
+                : rawCommandOutput.Substring(diskIdx).Trim();
+        }
 
         var diskLines = diskSection.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (diskLines.Length >= 2)
@@ -83,6 +89,72 @@ public class LinuxSystemInfoParser : ILinuxSystemInfoParser
             }
         }
 
+        // 5. Network (/proc/net/dev & ip -4 -o addr show)
+        var netSection = GetSection("NETWORK", "IP");
+        var ipSection = rawCommandOutput.Contains("===IP===")
+            ? rawCommandOutput.Substring(rawCommandOutput.IndexOf("===IP===") + 8).Trim()
+            : string.Empty;
+
+        var ipMap = ParseIpAddresses(ipSection);
+        var networks = ParseNetworkInterfaces(netSection, ipMap);
+        response.Networks = networks;
+
         return response;
+    }
+
+    private Dictionary<string, string> ParseIpAddresses(string ipSection)
+    {
+        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(ipSection)) return dict;
+
+        var lines = ipSection.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            // Format example: 2: eth0    inet 192.168.1.100/24 brd 192.168.1.255 scope global eth0
+            var match = Regex.Match(line, @"\d+:\s+(\S+)\s+inet\s+([\d\.]+)");
+            if (match.Success)
+            {
+                var ifName = match.Groups[1].Value.Trim();
+                var ip = match.Groups[2].Value.Trim();
+                dict[ifName] = ip;
+            }
+        }
+        return dict;
+    }
+
+    private List<NetworkInterfaceDto> ParseNetworkInterfaces(string netSection, Dictionary<string, string> ipMap)
+    {
+        var list = new List<NetworkInterfaceDto>();
+        if (string.IsNullOrWhiteSpace(netSection)) return list;
+
+        var lines = netSection.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            if (line.Contains("|") || !line.Contains(":")) continue;
+
+            var parts = line.Split(':');
+            if (parts.Length != 2) continue;
+
+            var ifName = parts[0].Trim();
+            if (ifName.Equals("lo", StringComparison.OrdinalIgnoreCase)) continue; // Skip loopback
+
+            var stats = Regex.Split(parts[1].Trim(), @"\s+");
+            if (stats.Length >= 9)
+            {
+                long.TryParse(stats[0], out var rxBytes);
+                long.TryParse(stats[8], out var txBytes);
+
+                ipMap.TryGetValue(ifName, out var ipAddress);
+
+                list.Add(new NetworkInterfaceDto
+                {
+                    InterfaceName = ifName,
+                    IpAddress = ipAddress ?? string.Empty,
+                    RxBytesTotal = rxBytes,
+                    TxBytesTotal = txBytes
+                });
+            }
+        }
+        return list;
     }
 }

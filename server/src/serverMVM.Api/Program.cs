@@ -16,6 +16,8 @@ builder.Services.AddScoped<ISshService, SshService>();
 builder.Services.AddSingleton<ISshTerminalManager, SshTerminalManager>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<IDockerComposeDiscoveryService, DockerComposeDiscoveryService>();
+builder.Services.AddScoped<ISystemLogService, SystemLogService>();
+builder.Services.AddScoped<ISshAuditService, SshAuditService>();
 
 // Configure CORS for Frontend integration & WebSockets/SignalR
 builder.Services.AddCors(options =>

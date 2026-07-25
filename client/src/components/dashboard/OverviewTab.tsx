@@ -195,36 +195,40 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </Card>
       </div>
 
-      {/* Network Ports & Quick Status Check Table */}
+      {/* Network Interfaces & Ports Check */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Real Network Interfaces Card */}
         <Card>
           <CardHeader>
             <CardTitle>
               <Globe className="w-4 h-4 text-blue-600" />
-              Cổng Mạng & Dịch vụ chính
+              Giao diện Mạng VPS (Network Interfaces)
             </CardTitle>
-            <CardDescription>Trạng thái lắng nghe cổng trên VPS</CardDescription>
+            <CardDescription>Địa chỉ IP & Lưu lượng truyền nhận dữ liệu (RX/TX)</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-slate-200 dark:divide-slate-800 text-xs font-mono-code">
-              {[
-                { port: 22, name: 'SSH Protocol', protocol: 'TCP', status: 'ACTIVE', color: 'text-emerald-600' },
-                { port: 80, name: 'HTTP Web Server (Nginx)', protocol: 'TCP', status: 'ACTIVE', color: 'text-emerald-600' },
-                { port: 443, name: 'HTTPS TLS (Nginx)', protocol: 'TCP', status: 'ACTIVE', color: 'text-emerald-600' },
-                { port: 5432, name: 'PostgreSQL Database', protocol: 'TCP', status: 'ACTIVE', color: 'text-emerald-600' },
-                { port: 6379, name: 'Redis Cache Server', protocol: 'TCP', status: 'INACTIVE', color: 'text-slate-400' },
-              ].map((p) => (
-                <div key={p.port} className="px-5 py-2.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <div className="flex items-center gap-3">
-                    <span className="w-12 font-bold text-blue-700 dark:text-blue-400">:{p.port}</span>
-                    <span className="text-slate-800 dark:text-slate-200 font-sans font-medium">{p.name}</span>
+              {systemInfo.networks && systemInfo.networks.length > 0 ? (
+                systemInfo.networks.map((net, idx) => (
+                  <div key={idx} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 border border-blue-200 dark:border-blue-800">
+                        {net.interfaceName}
+                      </span>
+                      <span className="text-slate-800 dark:text-slate-200 font-semibold">{net.ipAddress || 'No IP'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px]">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">↓ RX: {net.formattedRxTotal || '0 B'}</span>
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-medium">↑ TX: {net.formattedTxTotal || '0 B'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] text-slate-500">{p.protocol}</span>
-                    <span className={`text-[11px] font-bold ${p.color}`}>{p.status}</span>
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-slate-400 font-sans italic">
+                  Chưa nhận được danh sách card mạng.
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

@@ -307,7 +307,7 @@ export function App() {
 
                 {activeTab === 'services' && <ServicesTab />}
 
-                {activeTab === 'logs' && <LogsTab />}
+                {activeTab === 'logs' && activeProfile && <LogsTab activeProfile={activeProfile} />}
               </>
             )}
           </div>
